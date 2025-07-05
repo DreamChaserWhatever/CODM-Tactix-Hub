@@ -1,6 +1,3 @@
-import os
-import psutil
-import win32com.client
 from src.core.utils.logger import LoggerManager
 from src.core.utils.paths import resource_path
 from ...core.exceptions.exceptions import GameProcessNotFoundError, ShortcutCreationError
