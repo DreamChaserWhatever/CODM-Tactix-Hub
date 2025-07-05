@@ -5,6 +5,10 @@
     <orderEntry type="jdk" jdkName="env_CODM-Tactix-Hub" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="E:\Environment\Project_python\CODM-Tactix-Hub\requirements.txt" />
+    <option name="keepMatchingSpecifier" value="false" />
+  </component>
   <component name="PyNamespacePackagesService">
     <option name="namespacePackageFolders">
       <list>

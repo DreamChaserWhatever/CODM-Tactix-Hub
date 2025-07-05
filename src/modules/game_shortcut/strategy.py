@@ -1,7 +1,25 @@
 import os
 import psutil
 import win32com.client
+import ctypes
+from ctypes import wintypes
 from ...core.exceptions.exceptions import GameProcessNotFoundError, ShortcutCreationError
+
+# 定义Windows常量
+CSIDL_DESKTOP = 0
+SHGFP_TYPE_CURRENT = 0
+
+
+def get_desktop_path():
+    """使用Windows API获取真实的桌面路径"""
+    try:
+        # 使用ctypes调用Windows API获取桌面路径
+        buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
+        ctypes.windll.shell32.SHGetFolderPathW(0, CSIDL_DESKTOP, 0, SHGFP_TYPE_CURRENT, buf)
+        return buf.value
+    except Exception:
+        # 如果API调用失败，使用备用方法
+        return os.path.join(os.path.expanduser("~"), 'Desktop')
 
 
 class BaseShortcutStrategy:
@@ -29,11 +47,14 @@ class DefaultShortcutStrategy(BaseShortcutStrategy):
     def create_shortcut(self, target_path, arguments, shortcut_name):
         """创建快捷方式"""
         try:
-            # 获取桌面路径
-            desktop = os.path.join(os.path.expanduser("~"), 'Desktop')
+            # 获取桌面路径 - 使用新的方法
+            desktop = get_desktop_path()
 
             # 创建快捷方式路径
             shortcut_path = os.path.join(desktop, f"{shortcut_name}.lnk")
+
+            # 确保目录存在
+            os.makedirs(os.path.dirname(shortcut_path), exist_ok=True)
 
             # 获取游戏目录作为起始位置
             working_directory = os.path.dirname(target_path)
@@ -49,4 +70,7 @@ class DefaultShortcutStrategy(BaseShortcutStrategy):
 
             return shortcut_path
         except Exception as e:
-            raise ShortcutCreationError(f"创建快捷方式失败: {str(e)}")
+            # 添加详细的错误信息
+            import traceback
+            error_details = traceback.format_exc()
+            raise ShortcutCreationError(f"创建快捷方式失败: {str(e)}\n详细信息: {error_details}")
