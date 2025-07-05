@@ -2,15 +2,14 @@
 处理策略实现
 包含具体的注册表修改策略
 """
-
 from src.core.utils.registry_utils import read_reg_binary_value, write_reg_binary_value
 from ...core.exceptions.exceptions import RegistryReadError, RegistryWriteError, RegistryPermissionError
 
 
-class BaseZeroSensitivityStrategy:
-    """零灵敏度策略基类"""
+class BaseRegUnlockFOV:
+    """FOV策略基类"""
 
-    def execute(self, root_key, sub_key, value_name):
+    def execute(self, root_key, sub_key, value_name, byte_):
         """
         执行注册表修改操作
 
@@ -20,33 +19,35 @@ class BaseZeroSensitivityStrategy:
         raise NotImplementedError("子类必须实现此方法")
 
 
-class DefaultZeroSensitivityStrategy(BaseZeroSensitivityStrategy):
-    """默认零灵敏度修改策略"""
-
-    def execute(self, root_key, sub_key, value_name):
+class DefaultRegUnlockFOV(BaseRegUnlockFOV):
+    def execute(self, root_key, sub_key, value_name, byte_):
         result = {
             'key': f"{root_key}\\{sub_key}\\{value_name}",
             'original_data': None,
             'modified_data': None,
             'modified': False,
-            'success': False
+            'success': False,
+            'byte': byte_
         }
-
         try:
             # 读取当前值
             raw_data = read_reg_binary_value(root_key, sub_key, value_name)
             if raw_data is None:
                 raise RegistryReadError("无法读取注册表值", key_path=sub_key, value_name=value_name)
-
             result['original_data'] = raw_data
-
-            # 检查是否需要修改（第一个字节是否为0x01）
-            if raw_data[0] == 0x01:
+            # 检查数据长度是否足够
+            if len(raw_data) < 6:
+                raise ValueError(f"数据长度不足6个字节，实际长度: {len(raw_data)}")
+            # 转换为字节数组以便修改
+            modified_bytes = bytearray(raw_data)
+            if modified_bytes[6] == byte_:
                 result['modified'] = False
                 return result
 
-            # 修改第一个字节为0x01
-            modified_data = bytes([0x01]) + raw_data[1:]
+            modified_bytes[6] = byte_
+
+            # 转换回字节
+            modified_data = bytes(modified_bytes)
             result['modified_data'] = modified_data
 
             # 写入新值
