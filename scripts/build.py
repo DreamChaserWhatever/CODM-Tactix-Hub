@@ -110,6 +110,7 @@ def get_hidden_imports():
         "src.modules.reg_unlock_fps",
         "src.modules.zero_sensitivity",
         "src.modules.game_shortcut",
+        "src.modules.reg_unlock_fov",
 
         # 其他可能需要的模块
         "win32api",  # Windows API支持
@@ -118,6 +119,9 @@ def get_hidden_imports():
         "colorama",  # 日志颜色支持
         "ctypes",  # 底层API支持
         "re",  # 正则表达式
+        "enum",
+        "argparse",
+
     ]
 
 
